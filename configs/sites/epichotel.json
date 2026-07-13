@@ -1,0 +1,6 @@
+{
+  "siteId": "epichotel",
+  "baseUrl": "https://www.epichotel.com",
+  "discovery": { "type": "sitemap", "path": "/sitemap.xml" },
+  "adapter": "kimpton-template-v1"
+}

@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content Scrapper</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f7f7f8;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --border: #e2e2e2;
+    --accent: #2563eb;
+    --accent-contrast: #ffffff;
+    --danger-bg: #fdecec;
+    --danger-text: #9b1c1c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121212;
+      --card: #1c1c1e;
+      --text: #f0f0f0;
+      --muted: #a0a0a0;
+      --border: #333333;
+      --accent: #5b8def;
+      --accent-contrast: #0b0b0b;
+      --danger-bg: #3a1a1a;
+      --danger-text: #ff9c9c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  header {
+    padding: 24px 20px 8px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  header h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  header p { color: var(--muted); margin: 0; font-size: 0.9rem; }
+
+  main { max-width: 900px; margin: 0 auto; padding: 16px 20px 60px; }
+
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0 8px;
+  }
+  .search-bar input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  .search-bar button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+  .search-bar button:disabled { opacity: 0.6; cursor: default; }
+  .hint { color: var(--muted); font-size: 0.8rem; margin-bottom: 20px; }
+
+  .panel-title {
+    font-size: 0.95rem;
+    margin: 28px 0 6px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .panel-title:first-of-type { margin-top: 8px; }
+
+  .status { margin: 16px 0; font-size: 0.9rem; color: var(--muted); }
+
+  .progress-bar {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--border);
+    overflow: hidden;
+    margin: 8px 0;
+  }
+  .progress-bar > div {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s ease;
+  }
+
+  .page-list { margin: 10px 0 24px; }
+  .page-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    font-size: 0.88rem;
+  }
+  .page-list-item:hover { border-color: var(--accent); }
+  .page-list-item .title { font-weight: 600; }
+  .page-list-item .url { color: var(--muted); font-size: 0.78rem; }
+  .page-list-item .count { color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
+  .error-box {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 16px 0;
+    font-size: 0.9rem;
+  }
+
+  .meta-card, .section-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  .meta-card h2, .section-card h2 { margin: 0 0 4px; font-size: 1.15rem; }
+  .meta-card .desc { color: var(--muted); font-size: 0.9rem; margin: 4px 0; }
+  .meta-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .meta-tags span {
+    font-size: 0.72rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: var(--muted);
+  }
+
+  .section-type {
+    display: inline-block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .section-card h3 { margin: 0 0 2px; font-size: 1.05rem; }
+  .section-card .subheading { color: var(--muted); font-size: 0.9rem; margin: 0 0 8px; }
+  .section-card .body { font-size: 0.92rem; }
+  .section-card .body a { color: var(--accent); }
+  .section-card .body p { margin: 0 0 8px; }
+
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .image-grid figure { margin: 0; }
+  .image-grid img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .image-grid figcaption {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .image-grid figcaption.missing-alt { color: var(--danger-text); }
+
+  details.raw-json {
+    margin-top: 24px;
+  }
+  details.raw-json summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  details.raw-json pre {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    overflow-x: auto;
+    font-size: 0.78rem;
+  }
+
+  .adapter-badge {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Content Scrapper</h1>
+  <p>Enter a page URL from an approved site to preview its section-wise scraped content (meta, copy, image alt text).</p>
+</header>
+<main>
+  <h2 class="panel-title">Preview a single page</h2>
+  <form class="search-bar" id="scrape-form">
+    <input type="url" id="url-input" placeholder="https://www.monaco-philadelphia.com/boutique-hotels-philadelphia/" required>
+    <button type="submit" id="submit-btn">Scrape</button>
+  </form>
+  <div class="hint" id="allowed-hint">Loading approved sites…</div>
+
+  <h2 class="panel-title">Scrape a whole site</h2>
+  <form class="search-bar" id="site-form">
+    <input type="url" id="site-input" placeholder="https://www.monaco-philadelphia.com/" required>
+    <button type="submit" id="site-submit-btn">Start</button>
+  </form>
+  <div class="hint">Discovers every page via the site's sitemap.xml, then scrapes each one. Can take a few minutes for a full site.</div>
+  <div id="job-status" class="status" hidden></div>
+  <div id="job-error" class="error-box" hidden></div>
+  <div id="page-list"></div>
+
+  <div id="status" class="status" hidden></div>
+  <div id="error" class="error-box" hidden></div>
+  <div id="results"></div>
+</main>
+
+<script>
+  const form = document.getElementById("scrape-form");
+  const urlInput = document.getElementById("url-input");
+  const submitBtn = document.getElementById("submit-btn");
+  const statusEl = document.getElementById("status");
+  const errorEl = document.getElementById("error");
+  const resultsEl = document.getElementById("results");
+  const allowedHintEl = document.getElementById("allowed-hint");
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  // Minimal defense-in-depth before innerHTML: strip script/style tags and inline event handlers
+  // from source-page HTML we're about to render. Not a full sanitizer — this tool is restricted
+  // to an admin-curated site allowlist, not arbitrary internet content.
+  function sanitizeHtml(html) {
+    return html
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/\son\w+="[^"]*"/gi, "")
+      .replace(/\son\w+='[^']*'/gi, "");
+  }
+
+  async function loadAllowedDomains() {
+    try {
+      const res = await fetch("/api/allowed-domains");
+      const data = await res.json();
+      allowedHintEl.textContent = data.domains.includes("*")
+        ? "Any site is allowed (internal/private network addresses are still blocked)."
+        : "Approved sites: " + data.domains.join(", ");
+    } catch {
+      allowedHintEl.textContent = "";
+    }
+  }
+  loadAllowedDomains();
+
+  function renderMeta(page, adapterUsed) {
+    const m = page.meta;
+    return `
+      <div class="meta-card">
+        <div class="adapter-badge">Adapter: ${escapeHtml(adapterUsed)} &middot; Scraped ${new Date(page.scrapedAt).toLocaleString()}</div>
+        <h2>${escapeHtml(m.title ?? page.url)}</h2>
+        ${m.description ? `<p class="desc">${escapeHtml(m.description)}</p>` : ""}
+        <div class="meta-tags">
+          <span>URL: ${escapeHtml(page.url)}</span>
+          ${m.canonical ? `<span>canonical: ${escapeHtml(m.canonical)}</span>` : ""}
+          ${m.structuredData?.length ? `<span>${m.structuredData.length} JSON-LD block(s)</span>` : ""}
+        </div>
+      </div>`;
+  }
+
+  function renderImages(images) {
+    if (!images || images.length === 0) return "";
+    return `<div class="image-grid">${images
+      .map((img) => {
+        const missing = !img.alt;
+        return `<figure>
+          <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.alt)}" loading="lazy">
+          <figcaption class="${missing ? "missing-alt" : ""}">${escapeHtml(img.alt || "(no alt text)")}</figcaption>
+        </figure>`;
+      })
+      .join("")}</div>`;
+  }
+
+  function renderSection(section) {
+    return `
+      <div class="section-card">
+        <span class="section-type">${escapeHtml(section.sectionType)}</span>
+        ${section.heading ? `<h3>${escapeHtml(section.heading)}</h3>` : ""}
+        ${section.subheading ? `<p class="subheading">${escapeHtml(section.subheading)}</p>` : ""}
+        ${section.bodyHtml ? `<div class="body">${sanitizeHtml(section.bodyHtml)}</div>` : ""}
+        ${renderImages(section.images)}
+      </div>`;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const url = urlInput.value.trim();
+    if (!url) return;
+
+    submitBtn.disabled = true;
+    statusEl.hidden = false;
+    statusEl.textContent = "Scraping… this renders the page in a real browser, can take a few seconds.";
+    errorEl.hidden = true;
+    resultsEl.innerHTML = "";
+
+    try {
+      const res = await fetch("/api/scrape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const rawText = await res.text();
+      let data;
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        throw new Error(`Server returned a non-JSON response (status ${res.status}). Try again — if it keeps happening, check the server logs.`);
+      }
+      if (!res.ok) {
+        throw new Error(data.error || `Request failed (${res.status})`);
+      }
+
+      statusEl.hidden = true;
+      const { page, adapterUsed } = data;
+      renderPageResult(page, adapterUsed || page.adapterUsed);
+    } catch (err) {
+      statusEl.hidden = true;
+      errorEl.hidden = false;
+      errorEl.textContent = err.message || "Something went wrong.";
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  function renderPageResult(page, adapterUsed) {
+    resultsEl.innerHTML =
+      renderMeta(page, adapterUsed) +
+      page.sections.map(renderSection).join("") +
+      `<details class="raw-json"><summary>Raw JSON</summary><pre>${escapeHtml(JSON.stringify(page, null, 2))}</pre></details>`;
+    resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // ---- Whole-site scraping ----
+  const siteForm = document.getElementById("site-form");
+  const siteInput = document.getElementById("site-input");
+  const siteSubmitBtn = document.getElementById("site-submit-btn");
+  const jobStatusEl = document.getElementById("job-status");
+  const jobErrorEl = document.getElementById("job-error");
+  const pageListEl = document.getElementById("page-list");
+
+  let pollTimer = null;
+
+  async function fetchJson(url, options) {
+    const res = await fetch(url, options);
+    const rawText = await res.text();
+    let data;
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      throw new Error(`Server returned a non-JSON response (status ${res.status}).`);
+    }
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    return data;
+  }
+
+  function renderJobStatus(job) {
+    jobStatusEl.hidden = false;
+    const pct = job.total > 0 ? Math.round((job.completed / job.total) * 100) : 0;
+    const label =
+      job.status === "discovering"
+        ? "Discovering pages from sitemap.xml…"
+        : job.status === "extracting"
+        ? `Scraping ${job.completed}/${job.total} pages…`
+        : job.status === "done"
+        ? `Done — ${job.completed}/${job.total} pages scraped${job.failed.length ? `, ${job.failed.length} failed` : ""}.`
+        : `Failed: ${job.error || "unknown error"}`;
+    jobStatusEl.innerHTML = `${escapeHtml(label)}<div class="progress-bar"><div style="width:${pct}%"></div></div>`;
+  }
+
+  async function loadPageList(siteId) {
+    try {
+      const data = await fetchJson(`/api/sites/${encodeURIComponent(siteId)}/pages`);
+      renderPageList(siteId, data.pages);
+    } catch {
+      // no pages yet — fine while a job is still in its early "discovering" phase
+    }
+  }
+
+  function renderPageList(siteId, pages) {
+    if (!pages || pages.length === 0) {
+      pageListEl.innerHTML = "";
+      return;
+    }
+    pageListEl.innerHTML =
+      `<div class="hint">${pages.length} page(s) scraped for ${escapeHtml(siteId)} — click one to view:</div>` +
+      `<div class="page-list">` +
+      pages
+        .map(
+          (p) => `
+        <div class="page-list-item" data-file="${escapeHtml(p.fileName)}" data-site="${escapeHtml(siteId)}">
+          <div>
+            <div class="title">${escapeHtml(p.title || p.url)}</div>
+            <div class="url">${escapeHtml(p.url)}</div>
+          </div>
+          <div class="count">${p.sectionCount} section(s) &middot; ${escapeHtml(p.adapterUsed || "?")}</div>
+        </div>`,
+        )
+        .join("") +
+      `</div>`;
+
+    pageListEl.querySelectorAll(".page-list-item").forEach((el) => {
+      el.addEventListener("click", async () => {
+        try {
+          const data = await fetchJson(`/api/sites/${encodeURIComponent(el.dataset.site)}/pages/${encodeURIComponent(el.dataset.file)}`);
+          renderPageResult(data.page, data.page.adapterUsed);
+        } catch (err) {
+          jobErrorEl.hidden = false;
+          jobErrorEl.textContent = err.message || "Failed to load that page.";
+        }
+      });
+    });
+  }
+
+  async function pollJob(jobId, siteId) {
+    try {
+      const data = await fetchJson(`/api/jobs/${jobId}`);
+      renderJobStatus(data.job);
+      if (data.job.status === "extracting" || data.job.completed > 0) {
+        await loadPageList(siteId);
+      }
+      if (data.job.status === "done" || data.job.status === "error") {
+        clearTimeout(pollTimer);
+        siteSubmitBtn.disabled = false;
+        if (data.job.status === "done") await loadPageList(siteId);
+        return;
+      }
+      pollTimer = setTimeout(() => pollJob(jobId, siteId), 2000);
+    } catch (err) {
+      clearTimeout(pollTimer);
+      siteSubmitBtn.disabled = false;
+      jobErrorEl.hidden = false;
+      jobErrorEl.textContent = err.message || "Lost track of the job.";
+    }
+  }
+
+  siteForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const url = siteInput.value.trim();
+    if (!url) return;
+
+    siteSubmitBtn.disabled = true;
+    jobErrorEl.hidden = true;
+    jobStatusEl.hidden = false;
+    jobStatusEl.textContent = "Starting…";
+    pageListEl.innerHTML = "";
+    clearTimeout(pollTimer);
+
+    try {
+      const data = await fetchJson("/api/sites/scrape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      pollJob(data.jobId, data.siteId);
+    } catch (err) {
+      siteSubmitBtn.disabled = false;
+      jobStatusEl.hidden = true;
+      jobErrorEl.hidden = false;
+      jobErrorEl.textContent = err.message || "Could not start the job.";
+    }
+  });
+</script>
+</body>
+</html>

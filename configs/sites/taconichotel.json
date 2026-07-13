@@ -1,0 +1,6 @@
+{
+  "siteId": "taconichotel",
+  "baseUrl": "https://www.taconichotel.com",
+  "discovery": { "type": "sitemap", "path": "/sitemap.xml" },
+  "adapter": "kimpton-template-v1"
+}

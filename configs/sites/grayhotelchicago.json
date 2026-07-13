@@ -1,0 +1,6 @@
+{
+  "siteId": "grayhotelchicago",
+  "baseUrl": "https://www.grayhotelchicago.com",
+  "discovery": { "type": "sitemap", "path": "/sitemap.xml" },
+  "adapter": "kimpton-template-v1"
+}

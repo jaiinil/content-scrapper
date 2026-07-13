@@ -1,0 +1,6 @@
+{
+  "siteId": "monaco-philadelphia",
+  "baseUrl": "https://www.monaco-philadelphia.com",
+  "discovery": { "type": "sitemap", "path": "/sitemap.xml" },
+  "adapter": "kimpton-template-v1"
+}

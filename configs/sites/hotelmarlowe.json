@@ -1,0 +1,6 @@
+{
+  "siteId": "hotelmarlowe",
+  "baseUrl": "https://www.hotelmarlowe.com",
+  "discovery": { "type": "sitemap", "path": "/sitemap.xml" },
+  "adapter": "kimpton-template-v1"
+}

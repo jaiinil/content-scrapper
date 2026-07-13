@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.epichotel.com)",
+      "WebFetch(domain:www.monaco-philadelphia.com)",
+      "PowerShell(npm *)",
+      "PowerShell(npx playwright install chromium)",
+      "PowerShell(npx tsc --noEmit)",
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:3000/api/jobs/78a7bbb3-eee5-4d99-a603-5609164af33e\")",
+      "PowerShell(Get-Command *)",
+      "PowerShell(winget install *)",
+      "PowerShell(git config *)"
+    ]
+  }
+}
